@@ -7,7 +7,7 @@ FROM base AS deps
 RUN apk add --no-cache python3 make g++ gcc libc-dev linux-headers
 
 # Copy package files
-COPY cube/package.json ./
+COPY package.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
@@ -16,7 +16,7 @@ RUN npm install --legacy-peer-deps
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY cube .
+COPY . .
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED 1
