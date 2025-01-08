@@ -6,20 +6,17 @@ WORKDIR /app
 FROM base AS deps
 RUN apk add --no-cache python3 make g++ gcc libc-dev linux-headers
 
-# First, copy only package files
-COPY package.json ./
+# Copy package files
+COPY cube/package.json ./
 
-# Install dependencies with specific flags to avoid native build issues
-RUN NAPI_BINARY=false npm install --legacy-peer-deps --ignore-scripts --omit=optional
+# Install dependencies
+RUN npm install --legacy-peer-deps
 
-# Install framer-motion explicitly
-RUN npm install framer-motion@10.17.9
-
-# Rebuild the source code only when needed
+# Copy the rest of the application
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY cube .
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -27,12 +24,11 @@ ENV NODE_ENV production
 ENV NEXT_PUBLIC_SOLANA_NETWORK devnet
 ENV NEXT_PUBLIC_SOLANA_RPC_HOST https://api.devnet.solana.com
 ENV NODE_OPTIONS="--max_old_space_size=4096"
-ENV NAPI_BINARY false
 
 # Build the application
 RUN npm run build
 
-# Production image, copy all the files and run next
+# Production image
 FROM base AS runner
 WORKDIR /app
 
