@@ -1,14 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { forceReflow } from '@/app/utils/animation';
 
 interface PageTransitionProps {
+  href: string;
   children: React.ReactNode;
+  className?: string;
 }
 
-export function PageTransition({ children }: PageTransitionProps) {
-  useEffect(() => {
+export function PageTransition({ href, children, className }: PageTransitionProps) {
+  const router = useRouter();
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    
     document.querySelectorAll('.content-warp').forEach((element) => {
       if (element instanceof HTMLElement) {
         element.classList.remove('content-warp');
@@ -16,11 +23,16 @@ export function PageTransition({ children }: PageTransitionProps) {
         element.classList.add('content-warp');
       }
     });
-  }, []);
+
+    // Small delay to match the original load timing
+    setTimeout(() => {
+      router.push(href);
+    }, 100);
+  };
 
   return (
-    <div className="content-warp">
+    <Link href={href} onClick={handleClick} className={className}>
       {children}
-    </div>
+    </Link>
   );
 } 
