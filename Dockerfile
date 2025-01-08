@@ -4,13 +4,14 @@ WORKDIR /app
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache python3 make g++ gcc libc-dev linux-headers
+# Add build dependencies
+RUN apk add --no-cache python3 make g++ gcc libc-dev linux-headers udev eudev-dev
 
 # Copy package files
 COPY package.json ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install dependencies with specific flags to avoid USB build issues
+RUN npm install --legacy-peer-deps --ignore-scripts --omit=optional
 
 # Copy the rest of the application
 FROM base AS builder
@@ -24,6 +25,7 @@ ENV NODE_ENV production
 ENV NEXT_PUBLIC_SOLANA_NETWORK devnet
 ENV NEXT_PUBLIC_SOLANA_RPC_HOST https://api.devnet.solana.com
 ENV NODE_OPTIONS="--max_old_space_size=4096"
+ENV NAPI_BINARY false
 
 # Build the application
 RUN npm run build
@@ -38,7 +40,6 @@ ENV PORT 3000
 ENV HOST 0.0.0.0
 ENV NEXT_PUBLIC_SOLANA_NETWORK devnet
 ENV NEXT_PUBLIC_SOLANA_RPC_HOST https://api.devnet.solana.com
-ENV NAPI_BINARY false
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
